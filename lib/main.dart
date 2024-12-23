@@ -6,65 +6,83 @@ import 'package:getx/controller/reactive.dart';
 
 void main() {
   Get.lazyPut<ApiService>(() => ApiService());
-  runApp(const GetX());
+  runApp(GetX());
 }
 
 class GetX extends StatelessWidget {
-  const GetX({super.key});
+  final themeController = Get.put(ContainerController());
+  GetX({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const GetMaterialApp(
-      title: 'getx',
-      debugShowCheckedModeBanner: false,
-      home: CounterScreen(),
-    );
+    return Obx(() {
+      return GetMaterialApp(
+          title: 'getx',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode:
+          themeController.flag.value ? ThemeMode.dark : ThemeMode.light,
+          home: CounterScreen());
+    });
   }
 }
 
 class CounterScreen extends StatelessWidget {
-  const CounterScreen({super.key});
+   final  themeController = Get.put(ContainerController());
+   final  controller = Get.put(CounterController());
+  CounterScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    final CounterController controller = Get.put(CounterController());
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
               onPressed: () {
-                Get.to(const ApiScreen());
+                Get.to(ApiScreen());
               },
               icon: const Icon(Icons.arrow_forward_ios_sharp))
         ],
         title: const Text('GetX'),
       ),
       body: Center(
-        child: Obx(() => Text(
-              '${controller.count}',
-              style: const TextStyle(fontSize: 50),
-            )),
+        child: 
+            Obx(() => Text(
+                  '${controller.count}',
+                  style: const TextStyle(fontSize: 50),
+                )),
       ),
-      floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: () {
-            controller.increment();
-          }),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+              child: const Icon(Icons.add),
+              onPressed: () {
+                controller.increment();
+              }),
+          const SizedBox(height: 20,),
+          FloatingActionButton(
+              child: const Icon(Icons.dark_mode),
+              onPressed: () {
+                themeController.darkmode();
+              }),
+        ],
+      ),
     );
   }
 }
 
 class ApiScreen extends StatelessWidget {
-  const ApiScreen({super.key});
+  final ApiService api = Get.find();
+  ApiScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    final ApiService api = Get.find();
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
-              Get.to(const CounterScreen());
+              Get.offAll(CounterScreen());
             },
             icon: const Icon(Icons.arrow_back_ios_new_sharp)),
         actions: [
@@ -103,29 +121,30 @@ class ReactiveScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
-              Get.to(const ApiScreen());
+              Get.off(ApiScreen());
             },
             icon: const Icon(Icons.arrow_back_ios_new_sharp)),
         title: const Text('Reactive StateManagment'),
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Obx(() => Text('Name is ${reactive.name}')),
-              const SizedBox(
-                height: 20,
-              ),
-              TextField(
-                onChanged: reactive.changeName,
-                decoration: const InputDecoration(hintText: 'Enter Your Name'),
-              )
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Obx(() => Text(reactive.name.toString())),
+                const SizedBox(
+                  height: 20,
+                ),
+                TextField(
+                  onChanged: reactive.changeName,
+                  decoration:
+                      const InputDecoration(hintText: 'Enter Your Name'),
+                )
+              ],
+            ),
           ),
         ),
-      ),
     );
   }
 }
